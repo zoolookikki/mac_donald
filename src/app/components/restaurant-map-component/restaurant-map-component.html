@@ -1,1 +1,13 @@
-<p>restaurant-map-component works!</p>
+<!--
+height:100vh pour que la carte prenne toute la hauteur visible de l'écran (visible height) sinon la carte ne s'affiche pas
+    car height:100% ne fonctionne pas.
+leaflet est une directive attributaire ==> ajoute un comportement à un élément HTML existant.
+((([leafletOptions]="..." est un property binding Angular ==> Passe au composant Leaflet la valeur de la propriété "leafletOptions")))
+-->
+<div
+    style = "height:100vh"
+    leaflet
+    [leafletOptions]="leafletOptions">
+
+
+</div>
