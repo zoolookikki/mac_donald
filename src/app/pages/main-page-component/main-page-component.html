@@ -1,1 +1,2 @@
-<app-restaurant-map-component></app-restaurant-map-component>
+<app-city-search-component (currentCity)="handleSelect($event)"></app-city-search-component>
+<app-restaurant-map-component [currentCity]="currentCity"></app-restaurant-map-component>
