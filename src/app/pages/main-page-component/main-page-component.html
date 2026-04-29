@@ -1,2 +1,20 @@
-<app-city-search-component (currentCity)="handleSelect($event)"></app-city-search-component>
-<app-restaurant-map-component [currentCity]="currentCity"></app-restaurant-map-component>
+<main class="relative h-screen w-full overflow-hidden">
+  <!-- SEARCH BAR -->
+  <div class="fixed top-4 left-16 right-4 z-50 sm:left-1/2 sm:right-auto sm:w-[calc(100%-2rem)] sm:max-w-3xl sm:-translate-x-1/2">
+    <app-city-search-component
+      (currentCity)="handleSelect($event)">
+    </app-city-search-component>
+  </div>
+
+  <!-- MAP -->
+  <div class="relative z-10 h-full w-full">
+    <app-restaurant-map-component
+      [currentCity]="currentCity">
+    </app-restaurant-map-component>
+  </div>
+
+  <!-- OVERLAY -->
+  <div class="fixed bottom-0 left-0 right-0 z-40">
+    <app-restaurant-overlay-component></app-restaurant-overlay-component>
+  </div>
+</main>

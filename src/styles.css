@@ -1,1 +1,26 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+height:100vh pour que la carte prenne toute la hauteur visible de l'écran (visible height) sinon la carte ne s'affiche pas
+    car height:100% ne fonctionne pas.
+*/
+.map {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* écart du bouton qui suit l'autre verticalement */
+.leaflet-control-zoom a + a {
+  margin-top: 10px;
+}
+
+/* Supprime le gros cadre autour */
+.leaflet-control-zoom {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* cadre noir sur chaque bouton à la place */
+.leaflet-control-zoom a {
+  border: 1px solid #000 !important;
+}
+
