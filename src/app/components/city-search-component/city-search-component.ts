@@ -59,7 +59,7 @@ export class CitySearchComponent {
 
     return cities;
   }
-  
+
   public onSubmit(): void {
     this.errorMessage.set('');
     this.suggestions.set([]);
@@ -94,8 +94,6 @@ export class CitySearchComponent {
 
         // set car suggestions est un signal.
         this.suggestions.set(cities);
-        // Sélection automatique du premier résultat pour centrer la carte.
-        this.currentCity.emit(cities[0]);
 
         console.log(this.suggestions());
       },
@@ -104,4 +102,11 @@ export class CitySearchComponent {
       }
     });
   }
+
+  public onClickSuggestion(suggestion: City) {
+    this.currentCity.emit(suggestion);
+    this.errorMessage.set('');
+    this.suggestions.set([]);
+  }
+
 }

@@ -44,7 +44,10 @@
     <ul class="px-4 pb-4 space-y-2">
       <!-- suggestions() car suggestion est un signal. -->
       @for (suggestion of suggestions(); track suggestion.id) {
-        <li  class="cursor-pointer rounded-lg border border-black/30 bg-white px-3 py-2 text-sm hover:bg-gray-200 transition">
+        <li
+          class="cursor-pointer rounded-lg border border-black/30 bg-white px-3 py-2 text-sm hover:bg-gray-200 transition"
+          (click)="onClickSuggestion(suggestion)"
+        >
           {{ suggestion.name }}
         </li>
       }
