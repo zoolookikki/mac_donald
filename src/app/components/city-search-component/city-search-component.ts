@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, signal } from '@angular/core';
 import { City } from '../../models/city';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NominatimSearchResult } from '../../models/nominatim-search-result';
+import { CitySearchService } from '../../services/city-search-service';
 
 type CitySearchForm = FormGroup<{
   city: FormControl<string>;
@@ -15,14 +17,20 @@ type CitySearchForm = FormGroup<{
 export class CitySearchComponent {
   @Output() currentCity = new EventEmitter<City>();
 
-  /* 
+  /*
   Typage meilleur que public citySearchForm: FormGroup; ==> voir type CitySearchForm plus haut.
   C'est un formulaire mais en plus Typescript sait que le champ city de type string.
   Me permet en plus d'écrire citySearchForm.controls.city.value au lieu de citySearchForm.controls['city'].value + autocompletion.
   */
   public citySearchForm: CitySearchForm;
 
-  constructor() {
+  // signal sinon affichage en retard.
+  //public suggestions: City[] = [];
+  public suggestions = signal<City[]>([]);
+
+  public errorMessage = signal<string>("");
+
+  constructor(private citySearchService: CitySearchService) {
     this.citySearchForm = new FormGroup({
       city: new FormControl('', {
         /*
@@ -35,38 +43,30 @@ export class CitySearchComponent {
     });
   }
 
-  private choix1() : void {
-    const lieusaint: City = {
-      name: 'Lieusaint',
-      lat : 48.633331,
-      lon: 2.55
-    };
+  private convertNominatimSearchResultsToCities(results: NominatimSearchResult[]): City[] {
+    const cities: City[] = [];
 
-    this.currentCity.emit(lieusaint);
-  }
-  private choix2() : void {
-    const sete: City = {
-      name: 'Sète',
-      lat: 43.400002,
-      lon: 3.68333
-    };
+    for (const result of results) {
+      const city: City = {
+        id: result.place_id,
+        name: result.display_name,
+        lat: Number(result.lat),
+        lon: Number(result.lon),
+      };
 
-    this.currentCity.emit(sete);
-  }
-
-  public onSubmit() {
-    if (this.citySearchForm.invalid) {
-      /*
-      Marque tous les champs du formulaire comme “touchés” => sans markAllAsTouched(), si l’utilisateur clique directement sur le 
-      bouton de validation sans toucher au champ, le message d’erreur pourrait ne pas s’afficher.
-      */
-      this.citySearchForm.markAllAsTouched();
-      return;
+      cities.push(city);
     }
+
+    return cities;
+  }
+  
+  public onSubmit(): void {
+    this.errorMessage.set('');
+    this.suggestions.set([]);
 
     /*
     const city = this.citySearchForm.get('city')?.value.trim().toLowerCase();
-    Je récupère directement le contrôle "city" dans la liste des contrôles du formulaire => mieux que le get (si le champs 
+    Je récupère directement le contrôle "city" dans la liste des contrôles du formulaire => mieux que le get (si le champs
       n'existe pas)
     */
     const city: string = this.citySearchForm.controls.city.value.trim().toLowerCase();
@@ -74,21 +74,34 @@ export class CitySearchComponent {
     // par protection.
     if (!city) {
       this.citySearchForm.markAllAsTouched();
+      this.errorMessage.set("La saisie de la ville est obligatoire.");
       return;
     }    
 
-    if (city === 'lieusaint') {
-      this.choix1();
-      return;
-    }
+    this.citySearchService.searchCity(city).subscribe({
+      next: (results: NominatimSearchResult[]) => {
+        if (results.length === 0) {
+          this.errorMessage.set('Aucune correspondance trouvée pour cette recherche.');
+          return;
+        }
 
-    if (city === 'sète' || city === 'sete') {
-      this.choix2();
-      return;
-    }
+        const cities: City[] = this.convertNominatimSearchResultsToCities(results);
 
-    // Simulation provisoire tant que Nominatim n'est pas branché.
-    this.choix1();
+        if (cities.length === 0) {
+          this.errorMessage.set('Aucune correspondance trouvée pour cette recherche.');
+          return;
+        }
+
+        // set car suggestions est un signal.
+        this.suggestions.set(cities);
+        // Sélection automatique du premier résultat pour centrer la carte.
+        this.currentCity.emit(cities[0]);
+
+        console.log(this.suggestions());
+      },
+      error: () => {
+        this.errorMessage.set("Impossible d'effectuer la recherche pour le moment.");
+      }
+    });
   }
-
 }
