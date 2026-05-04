@@ -8,9 +8,20 @@
 
   <!-- MAP -->
   <div class="relative z-10 h-full w-full">
+
     <app-restaurant-map-component
-      [currentCity]="currentCity">
+      [currentCity]="currentCity()"
+      [poiList]="poiList()">
     </app-restaurant-map-component>
+
+    <!-- en attendant d'avoir une gestion de message d'erreur centralisée -->
+    @if (errorMessage()) {
+      <div class="absolute left-1/2 top-1/2 z-[9999] w-full max-w-xl -translate-x-1/2 -translate-y-1/2 px-4">
+        <div class="w-full rounded-2xl border border-red-300 bg-red-100 px-4 py-3 text-center text-red-700">
+          {{ errorMessage() }}
+        </div>
+      </div>
+    }
   </div>
 
   <!-- OVERLAY -->

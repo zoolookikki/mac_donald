@@ -3,4 +3,5 @@ export interface NominatimSearchResult {
   display_name: string;
   lat: string;
   lon: string;
+  boundingbox: string[];
 }

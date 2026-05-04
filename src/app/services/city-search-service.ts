@@ -2,14 +2,15 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { NominatimSearchResult } from '../models/nominatim-search-result';
+import {
+  NOMINATIM_SEARCH_URL,
+  NOMINATIM_DEFAULT_LIMIT,
+} from '../constants/nominatim.constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CitySearchService {
-
-  private readonly NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search';
-  private readonly DEFAULT_LIMIT = 10;
 
   constructor(private http: HttpClient) {}
   
@@ -20,11 +21,11 @@ export class CitySearchService {
     // null, undefined, "" OR "  "
     if (!query || !query.trim()) throw new Error("Query invalide");
 
-    return this.http.get<NominatimSearchResult[]>(this.NOMINATIM_SEARCH_URL, {
+    return this.http.get<NominatimSearchResult[]>(NOMINATIM_SEARCH_URL, {
       params: {
         format: 'json',
         q: query,
-        limit: this.DEFAULT_LIMIT,
+        limit: NOMINATIM_DEFAULT_LIMIT,
       },
     });
   }

@@ -52,6 +52,7 @@ export class CitySearchComponent {
         name: result.display_name,
         lat: Number(result.lat),
         lon: Number(result.lon),
+        boundingbox: result.boundingbox,
       };
 
       cities.push(city);
@@ -87,11 +88,6 @@ export class CitySearchComponent {
 
         const cities: City[] = this.convertNominatimSearchResultsToCities(results);
 
-        if (cities.length === 0) {
-          this.errorMessage.set('Aucune correspondance trouvée pour cette recherche.');
-          return;
-        }
-
         // set car suggestions est un signal.
         this.suggestions.set(cities);
 
@@ -103,7 +99,7 @@ export class CitySearchComponent {
     });
   }
 
-  public onClickSuggestion(suggestion: City) {
+  public onClickSuggestion(suggestion: City): void {
     this.currentCity.emit(suggestion);
     this.errorMessage.set('');
     this.suggestions.set([]);

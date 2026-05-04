@@ -1,11 +1,14 @@
 <!--
-leaflet est une directive attributaire ==> ajoute un comportement à un élément HTML existant.
-((([leafletOptions]="..." est un property binding Angular ==> Passe au composant Leaflet la valeur de la propriété "leafletOptions")))
+leaflet est une directive attributaire ==> ajoute un comportement à un élément HTML existant => transforme la div
+    en carte Leaflet.
+[leafletOptions]="..." est un property binding Angular ==> Passe au composant Leaflet la valeur de la
+    propriété "leafletOptions" => configuration de base de la carte.
+[leafletCenter] => pour centrer la carte sur la ville choisie.
+[leafletLayers] => couches Leaflet à afficher, ici les marqueurs?
 -->
 <div id="restaurant-map" class="map h-screen w-full"
     leaflet
     [leafletOptions]="leafletOptions"
-    [leafletCenter]="center">
-
-
+    [leafletCenter]="center"
+    [leafletLayers]="markers">
 </div>
