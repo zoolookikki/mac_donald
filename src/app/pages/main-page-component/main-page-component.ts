@@ -38,7 +38,7 @@ export class MainPageComponent {
     return pois;
   }
 
-  public handleSelect(city: City): void {
+  public handleSelectCity(city: City): void {
     console.log('ville reçue de city-search-component :', city);
     /*
     Reset POI uniquement si la ville a changé.
@@ -67,4 +67,9 @@ export class MainPageComponent {
       },
     });
   }
+
+  public handleSelectPOI(poi: Poi): void {
+    console.log('poi reçu de restaurant-mapcomponent :', poi);
+  }
+
 }

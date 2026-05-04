@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import {Icon, latLng, LatLng, MapOptions, marker, Marker, tileLayer } from 'leaflet';
 import { City } from '../../models/city';
@@ -31,6 +31,40 @@ export class RestaurantMapComponent {
   public center: LatLng = LEAFLET_DEFAULT_CENTER;
   public markers: Marker[] = [];
 
+  /*
+  Création d'un marqueur à la position donnée + ajout une popup contenant un bouton permettant de choisir le point d'intérêt :
+    - marker([poi.lat, poi.lon]) => Création du marqueur Leaflet.
+    - popupContent => le contenu d'une popup Leaflet n'est pas vu comme Angular le voit => on ne peut pas faire : (click)="function()" => à construire avec createElement :
+      - une div qui est le conteneur de la popup.
+      - un paragraphe pour afficher l’adresse du restaurant.
+      - un bouton "choisir" pour sélectionner le restaurant => addEventListener pour permettre le click sur le bouton créer dynamiquement.
+    - bindPopup => associe le contenu HTML créé au marqueur.
+  */
+  private createMarker(poi: Poi): Marker {
+    const poiMarker: Marker = marker([poi.lat, poi.lon]);
+
+    const popupContent: HTMLDivElement = document.createElement('div');
+
+    const address: HTMLParagraphElement = document.createElement('p');
+    address.className = 'text-xs';
+    address.textContent = poi.address;
+
+    const button: HTMLButtonElement = document.createElement('button');
+    button.type = 'button';
+    button.className = 'mt-2 rounded-lg cursor-pointer bg-yellow-400 px-3 py-2 text-xs font-semibold text-black transition hover:bg-yellow-500';
+    button.textContent = 'choisir';
+    button.addEventListener('click', () => {
+      this.currentPOI.emit(poi);
+    });
+
+    popupContent.appendChild(address);
+    popupContent.appendChild(button);
+
+    poiMarker.bindPopup(popupContent);
+
+    return poiMarker;
+  }
+  
   @Input() public set currentCity(value: City | null) {
     console.log('ville reçue de main-page-component :', value);
     this.center = value === null ? LEAFLET_DEFAULT_CENTER : latLng([value.lat, value.lon]);
@@ -38,14 +72,13 @@ export class RestaurantMapComponent {
   @Input() public set poiList(value: Poi[]) {
     console.log('poiList reçue de main-page-component :', value);
     for (const poi of value) {
-      /*
-      marker : créé un marqueur à la position donnée + bindPopup : ajoute une popup au marqueur.
-      */
-      const poiMarker: Marker = marker([poi.lat, poi.lon]).bindPopup(poi.address);
+      const poiMarker: Marker = this.createMarker(poi);
       this.markers.push(poiMarker);
     }
   }
-  
+
+  @Output() public currentPOI = new EventEmitter<Poi>();
+
   public readonly leafletOptions: MapOptions = {
     layers: [
       tileLayer(LEAFLET_TILE_URL, {

@@ -15,7 +15,7 @@ type CitySearchForm = FormGroup<{
   styleUrl: './city-search-component.css',
 })
 export class CitySearchComponent {
-  @Output() currentCity = new EventEmitter<City>();
+  @Output() public currentCity = new EventEmitter<City>();
 
   /*
   Typage meilleur que public citySearchForm: FormGroup; ==> voir type CitySearchForm plus haut.

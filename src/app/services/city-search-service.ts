@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+// RxJS est la bibliothèque utilisée par Angular pour gérer les traitements asynchrones.
 import { Observable } from 'rxjs';
 import { NominatimSearchResult } from '../models/nominatim-search-result';
 import {
@@ -14,6 +15,7 @@ export class CitySearchService {
 
   constructor(private http: HttpClient) {}
   
+  // retourne un Observable => il faut s'abonner avec Subscribe.
   public searchCity(query: string): Observable<NominatimSearchResult[]> {
     // test
     // query="";

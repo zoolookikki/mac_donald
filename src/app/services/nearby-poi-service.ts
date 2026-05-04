@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { City } from '../models/city';
+// RxJS est la bibliothèque utilisée par Angular pour gérer les traitements asynchrones.
 import { Observable, of } from 'rxjs';
 import { NominatimSearchResult } from '../models/nominatim-search-result';
 import {
@@ -9,6 +10,7 @@ import {
 } from '../constants/nominatim.constants';
 
 const POI_QUERY = "McDonald's";
+// environ 10km.
 const VIEWBOX_MARGIN = 0.10;
 
 @Injectable({
@@ -18,6 +20,11 @@ export class NearbyPoiService {
 
   constructor(private http: HttpClient) {}
 
+  /*
+  Nominatim renvoie une boundingbox pour chaque ville qui correspond au rectangle géographique approximatif de la ville (sud, nord, ouest, est).
+  On l’utilise pour construire une viewbox, c’est-à-dire une zone de recherche permettant de la limiter autour de la ville sélectionnée.
+  On ajoute une marge pour inclure les restaurants proches de la ville même s’ils sont légèrement en dehors de ses limites administratives.
+  */
   private makeViewbox(boundingbox: string[]): string {
     // transformation de chaque point du rectangle en numérique (pour ajouter de la marge)
     const [south, north, west, east] = boundingbox.map(Number);
@@ -30,6 +37,8 @@ export class NearbyPoiService {
       south - VIEWBOX_MARGIN, //  diminution de la longitude pour agrandir vers le bas.
     ].join(',');
   }
+
+  // retourne un Observable => il faut s'abonner avec Subscribe.
   public getNearbyPOIs(city: City, limit: number = NOMINATIM_DEFAULT_LIMIT): Observable<NominatimSearchResult[]> {
     /*
     ATTENTION : city doit contenir boundingbox car on en a besoin pour définir la viewbox (rectangle de recherche)
@@ -37,7 +46,7 @@ export class NearbyPoiService {
     + Nominatim pour trouver les adresses exactes.
     */
     if (!city || city.boundingbox == null) {
-      // comme on doit retourner un Observable, return[] tableau vide nok.
+      // retourne un Observable qui émet immédiatement un tableau vide.
       return of([]);
     }
 

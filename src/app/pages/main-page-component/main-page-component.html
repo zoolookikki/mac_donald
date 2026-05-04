@@ -2,7 +2,7 @@
   <!-- SEARCH BAR -->
   <div class="fixed top-4 left-16 right-4 z-50 sm:left-1/2 sm:right-auto sm:w-[calc(100%-2rem)] sm:max-w-3xl sm:-translate-x-1/2">
     <app-city-search-component
-      (currentCity)="handleSelect($event)">
+      (currentCity)="handleSelectCity($event)">
     </app-city-search-component>
   </div>
 
@@ -11,7 +11,8 @@
 
     <app-restaurant-map-component
       [currentCity]="currentCity()"
-      [poiList]="poiList()">
+      [poiList]="poiList()"
+      (currentPOI)="handleSelectPOI($event)">
     </app-restaurant-map-component>
 
     <!-- en attendant d'avoir une gestion de message d'erreur centralisée -->
