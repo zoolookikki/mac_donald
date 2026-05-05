@@ -27,6 +27,9 @@
 
   <!-- OVERLAY -->
   <div class="fixed bottom-0 left-0 right-0 z-40">
-    <app-restaurant-overlay-component></app-restaurant-overlay-component>
+    <app-restaurant-overlay-component
+      [currentPOI]="currentPOI()"
+      (continue)="handleContinue()">
+    </app-restaurant-overlay-component>
   </div>
 </main>

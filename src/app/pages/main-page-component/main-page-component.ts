@@ -17,6 +17,7 @@ export class MainPageComponent {
   public currentCity = signal<City | null>(null);
   public errorMessage = signal<string>("");
   public poiList = signal<Poi[]>([]);
+  public currentPOI = signal<Poi | null>(null);
 
   constructor(private nearbyPoiService: NearbyPoiService) {}
 
@@ -40,16 +41,20 @@ export class MainPageComponent {
 
   public handleSelectCity(city: City): void {
     console.log('ville reçue de city-search-component :', city);
+
+    // On efface toujours le restaurant sélectionné quand une ville est choisie.
+    this.currentPOI.set(null);
     /*
-    Reset POI uniquement si la ville a changé.
+    On efface les POI uniquement si la ville change.
     Le ?. => Si currentCity() n’est pas null, alors lis l'id sinon retourne undefined et donc !== event.id => reset.
     */
     if (this.currentCity()?.id !== city.id) {
       this.poiList.set([]);
     }
+    // on efface le message d'erreur.
+    this.errorMessage.set('');
 
     this.currentCity.set(city);
-    this.errorMessage.set('');
 
     this.nearbyPoiService.getNearbyPOIs(city).subscribe({
       next: (results: NominatimSearchResult[]) => {
@@ -70,6 +75,26 @@ export class MainPageComponent {
 
   public handleSelectPOI(poi: Poi): void {
     console.log('poi reçu de restaurant-mapcomponent :', poi);
+    this.currentPOI.set(poi);
+  }
+
+  // on a cliqué sur "Continuer" dans l'overlay.
+  public handleContinue(): void {
+    /*
+    Bonne pratique => variable locale :
+      - Quand on doit lire plusieurs fois une valeur nullable
+      - Pour que TypeScript soit ok avec la valeur null sinon erreur plus bas (this.currentPOI().name => l'objet a peut être la valeur null)
+    */
+    const currentPOI: Poi | null = this.currentPOI();
+
+    // cas normalement impossible (par protection)
+    if (currentPOI === null) {
+      this.errorMessage.set('Choix non effectué.');
+      return;
+    }
+    // simulation de la suite avec alert pour distinguer le cas.
+    //alert(`On continue, le choix est : ${this.currentPOI().name}`);
+    alert(`On continue, le choix est : ${currentPOI.name}`);
   }
 
 }

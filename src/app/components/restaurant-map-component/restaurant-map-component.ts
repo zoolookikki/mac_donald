@@ -71,6 +71,7 @@ export class RestaurantMapComponent {
   }
   @Input() public set poiList(value: Poi[]) {
     console.log('poiList reçue de main-page-component :', value);
+    this.markers = [];
     for (const poi of value) {
       const poiMarker: Marker = this.createMarker(poi);
       this.markers.push(poiMarker);
