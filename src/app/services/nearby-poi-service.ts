@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { City } from '../models/city';
 // RxJS est la bibliothèque utilisée par Angular pour gérer les traitements asynchrones.
-import { Observable, of } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { NominatimSearchResult } from '../models/nominatim-search-result';
 import {
   NOMINATIM_SEARCH_URL,
@@ -43,11 +43,15 @@ export class NearbyPoiService {
     /*
     ATTENTION : city doit contenir boundingbox car on en a besoin pour définir la viewbox (rectangle de recherche)
     Il est possible de faire autrement : Overpass pour trouver les POIs dans un rayon autour de la ville
-    + Nominatim pour trouver les adresses exactes.
+      + Nominatim pour trouver les adresses exactes.
+    Comme cette méthode retourne un Observable, on utilise throwError(...) de rxjs plutôt que throw new Error(...) => ce qui permet de tester l'erreur au nivau du composant
+      qui appelle le service.
+    throwError attend une fonction qui retourne une erreur.
     */
-    if (!city || city.boundingbox == null) {
-      // retourne un Observable qui émet immédiatement un tableau vide.
-      return of([]);
+    if (!city || city.boundingbox == null || city.boundingbox.length === 0) {
+      return throwError(function () {
+        return new Error('Erreur interne : ville invalide ou rectangle de recherche absent.');
+      });
     }
 
     const viewbox: string = this.makeViewbox(city.boundingbox);

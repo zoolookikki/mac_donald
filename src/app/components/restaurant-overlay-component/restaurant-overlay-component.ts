@@ -8,7 +8,7 @@ import { Poi } from '../../models/poi';
   styleUrl: './restaurant-overlay-component.css',
 })
 export class RestaurantOverlayComponent {
-  @Input() public currentPOI: Poi | null = null;  
+  @Input() public currentPOI: Poi | null = null;
   @Output() public continue = new EventEmitter<void>();
 
   public onClickContinue(): void {

@@ -3,6 +3,7 @@ import { City } from '../../models/city';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NominatimSearchResult } from '../../models/nominatim-search-result';
 import { CitySearchService } from '../../services/city-search-service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 type CitySearchForm = FormGroup<{
   city: FormControl<string>;
@@ -79,6 +80,8 @@ export class CitySearchComponent {
       return;
     }    
 
+    // test city hs dans le service => erreur interne.
+    //this.citySearchService.searchCity('').subscribe({
     this.citySearchService.searchCity(city).subscribe({
       next: (results: NominatimSearchResult[]) => {
         if (results.length === 0) {
@@ -93,8 +96,25 @@ export class CitySearchComponent {
 
         console.log(this.suggestions());
       },
-      error: () => {
-        this.errorMessage.set("Impossible d'effectuer la recherche pour le moment.");
+      /*
+      unknown mieux que any car l'erreur peut venir de plusieurs sources :
+      - HttpErrorResponse : erreur HTTP/API ;
+      - Error : erreur interne créée avec throwError ;
+      - autre type imprévu.
+      On vérifie donc le type avant d'utiliser l'erreur.
+      */
+      error: (error: unknown) => {
+        if (error instanceof HttpErrorResponse) {
+          this.errorMessage.set("Erreur HTTP : impossible de contacter le service de recherche.");
+          return;
+        }
+
+        if (error instanceof Error) {
+          this.errorMessage.set(error.message);
+          return;
+        }
+
+        this.errorMessage.set("Erreur inconnue lors de la recherche de la ville.");
       }
     });
   }

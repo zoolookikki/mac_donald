@@ -6,6 +6,7 @@ import { RestaurantOverlayComponent } from "../../components/restaurant-overlay-
 import { NearbyPoiService } from '../../services/nearby-poi-service';
 import { NominatimSearchResult } from '../../models/nominatim-search-result';
 import { Poi } from '../../models/poi';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-main-page-component',
@@ -56,6 +57,12 @@ export class MainPageComponent {
 
     this.currentCity.set(city);
 
+    // test city hs dans le service => erreur interne.
+    /*
+    const testCity = city;
+    testCity.boundingbox = [];
+    this.nearbyPoiService.getNearbyPOIs(testCity).subscribe({
+    */
     this.nearbyPoiService.getNearbyPOIs(city).subscribe({
       next: (results: NominatimSearchResult[]) => {
         console.log(results);
@@ -67,8 +74,25 @@ export class MainPageComponent {
         const pois: Poi[] = this.convertNominatimSearchResultsToPois(results);
         this.poiList.set(pois);
       },
-      error: () => {
-        this.errorMessage.set("Impossible de récupérer la liste des points d'intérêt.");
+      /*
+      unknown mieux que any car l'erreur peut venir de plusieurs sources :
+      - HttpErrorResponse : erreur HTTP/API ;
+      - Error : erreur interne créée avec throwError ;
+      - autre type imprévu.
+      On vérifie donc le type avant d'utiliser l'erreur.
+      */
+      error: (error: unknown) => {
+        if (error instanceof HttpErrorResponse) {
+          this.errorMessage.set("Erreur HTTP : impossible de récupérer la liste des points d'intérêt.");
+          return;
+        }
+
+        if (error instanceof Error) {
+          this.errorMessage.set(error.message);
+          return;
+        }
+
+        this.errorMessage.set("Erreur inconnue lors de la recherche des points d'intérêt.");
       },
     });
   }
