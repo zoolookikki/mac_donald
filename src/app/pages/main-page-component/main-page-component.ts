@@ -22,24 +22,6 @@ export class MainPageComponent {
 
   constructor(private nearbyPoiService: NearbyPoiService) {}
 
-  private convertNominatimSearchResultsToPois(results: NominatimSearchResult[]): Poi[] {
-    const pois: Poi[] = [];
-
-    for (const result of results) {
-      const poi: Poi = {
-        id: result.place_id,
-        name: result.display_name,
-        lat: Number(result.lat),
-        lon: Number(result.lon),
-        address: result.display_name,
-      };
-
-      pois.push(poi);
-    }
-
-    return pois;
-  }
-
   public handleSelectCity(city: City): void {
     console.log('ville reçue de city-search-component :', city);
 
@@ -64,14 +46,13 @@ export class MainPageComponent {
     this.nearbyPoiService.getNearbyPOIs(testCity).subscribe({
     */
     this.nearbyPoiService.getNearbyPOIs(city).subscribe({
-      next: (results: NominatimSearchResult[]) => {
-        console.log(results);
-        if (results.length === 0) {
+      next: (pois: Poi[]) => {
+        console.log(pois);
+        if (pois.length === 0) {
           this.errorMessage.set('Aucun Macdo trouvé.');
           return;
         }
 
-        const pois: Poi[] = this.convertNominatimSearchResultsToPois(results);
         this.poiList.set(pois);
       },
       /*

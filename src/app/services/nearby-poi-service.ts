@@ -2,12 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { City } from '../models/city';
 // RxJS est la bibliothèque utilisée par Angular pour gérer les traitements asynchrones.
-import { Observable, throwError } from 'rxjs';
+import { map, Observable, throwError } from 'rxjs';
 import { NominatimSearchResult } from '../models/nominatim-search-result';
 import {
   NOMINATIM_SEARCH_URL,
   NOMINATIM_DEFAULT_LIMIT,
 } from '../constants/nominatim.constants';
+import { Poi } from '../models/poi';
 
 const POI_QUERY = "McDonald's";
 // environ 10km.
@@ -38,8 +39,26 @@ export class NearbyPoiService {
     ].join(',');
   }
 
+  private convertNominatimSearchResultsToPois(results: NominatimSearchResult[]): Poi[] {
+      const pois: Poi[] = [];
+
+      for (const result of results) {
+        const poi: Poi = {
+          id: result.place_id,
+          name: result.display_name,
+          lat: Number(result.lat),
+          lon: Number(result.lon),
+          address: result.display_name,
+        };
+
+        pois.push(poi);
+      }
+
+      return pois;
+    }
+
   // retourne un Observable => il faut s'abonner avec Subscribe.
-  public getNearbyPOIs(city: City, limit: number = NOMINATIM_DEFAULT_LIMIT): Observable<NominatimSearchResult[]> {
+  public getNearbyPOIs(city: City, limit: number = NOMINATIM_DEFAULT_LIMIT): Observable<Poi[]> {
     /*
     ATTENTION : city doit contenir boundingbox car on en a besoin pour définir la viewbox (rectangle de recherche)
     Il est possible de faire autrement : Overpass pour trouver les POIs dans un rayon autour de la ville
@@ -56,18 +75,25 @@ export class NearbyPoiService {
 
     const viewbox: string = this.makeViewbox(city.boundingbox);
 
-    return this.http.get<NominatimSearchResult[]>(NOMINATIM_SEARCH_URL, {
-      params: {
-        format: 'json',
-        q: POI_QUERY,
-        limit,
-        viewbox,
-        // Limite les résultats à l’intérieur de la viewbox.
-        bounded: 1,
-        // Ajoute les détails d’adresse.
-        addressdetails: 1,
-      },
-    });
+    return this.http
+      .get<NominatimSearchResult[]>(NOMINATIM_SEARCH_URL, {
+        params: {
+          format: 'json',
+          q: POI_QUERY,
+          limit,
+          viewbox,
+          // Limite les résultats à l’intérieur de la viewbox.
+          bounded: 1,
+          // Ajoute les détails d’adresse.
+          addressdetails: 1,
+        },
+      })
+      // permet de modifier le résultat avant l'émission de l'observable => avantage de faire la transformation ici plutôt que dans le composant qui appelle ce service.
+      .pipe(
+        map((results: NominatimSearchResult[]) => {
+          return this.convertNominatimSearchResultsToPois(results);
+        })
+      );
   }
 
 }

@@ -44,24 +44,6 @@ export class CitySearchComponent {
     });
   }
 
-  private convertNominatimSearchResultsToCities(results: NominatimSearchResult[]): City[] {
-    const cities: City[] = [];
-
-    for (const result of results) {
-      const city: City = {
-        id: result.place_id,
-        name: result.display_name,
-        lat: Number(result.lat),
-        lon: Number(result.lon),
-        boundingbox: result.boundingbox,
-      };
-
-      cities.push(city);
-    }
-
-    return cities;
-  }
-
   public onSubmit(): void {
     this.errorMessage.set('');
     this.suggestions.set([]);
@@ -83,13 +65,11 @@ export class CitySearchComponent {
     // test city hs dans le service => erreur interne.
     //this.citySearchService.searchCity('').subscribe({
     this.citySearchService.searchCity(city).subscribe({
-      next: (results: NominatimSearchResult[]) => {
-        if (results.length === 0) {
+      next: (cities: City[]) => {
+        if (cities.length === 0) {
           this.errorMessage.set('Aucune correspondance trouvée pour cette recherche.');
           return;
         }
-
-        const cities: City[] = this.convertNominatimSearchResultsToCities(results);
 
         // set car suggestions est un signal.
         this.suggestions.set(cities);
