@@ -4,7 +4,6 @@ import { CitySearchComponent } from "../../components/city-search-component/city
 import { City } from '../../models/city';
 import { RestaurantOverlayComponent } from "../../components/restaurant-overlay-component/restaurant-overlay-component";
 import { NearbyPoiService } from '../../services/nearby-poi-service';
-import { NominatimSearchResult } from '../../models/nominatim-search-result';
 import { Poi } from '../../models/poi';
 import { HttpErrorResponse } from '@angular/common/http';
 

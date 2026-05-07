@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Output, signal } from '@angular/core';
 import { City } from '../../models/city';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NominatimSearchResult } from '../../models/nominatim-search-result';
 import { CitySearchService } from '../../services/city-search-service';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -31,6 +30,9 @@ export class CitySearchComponent {
 
   public errorMessage = signal<string>("");
 
+  // pas forcément utile dans notre projet (pour tester)
+  private cityRegex: RegExp = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/;
+
   constructor(private citySearchService: CitySearchService) {
     this.citySearchForm = new FormGroup({
       city: new FormControl('', {
@@ -39,7 +41,10 @@ export class CitySearchComponent {
         Evite des tests.
         */
         nonNullable: true,
-        validators: [Validators.required],
+        validators: [
+          Validators.required,
+          Validators.pattern(this.cityRegex),
+        ],
       }),
     });
   }
@@ -55,12 +60,24 @@ export class CitySearchComponent {
     */
     const city: string = this.citySearchForm.controls.city.value.trim().toLowerCase();
 
-    // par protection.
+    /*
+    par protection.
+    test !city meilleur que this.citySearchForm.invalid avec Validators.required car ne voit pas la saisie de blancs.
+    */
+//    if (this.citySearchForm.invalid) {
     if (!city) {
+      // force l’affichage des erreurs de validation.
       this.citySearchForm.markAllAsTouched();
       this.errorMessage.set("La saisie de la ville est obligatoire.");
       return;
     }    
+
+    // pas forcément utile dans notre projet (pour tester)
+    if (this.citySearchForm.controls.city.hasError('pattern')) {
+      this.citySearchForm.markAllAsTouched();
+      this.errorMessage.set("La ville ne doit contenir que des lettres, espaces, tirets ou apostrophes.");
+      return;
+    }
 
     // test city hs dans le service => erreur interne.
     //this.citySearchService.searchCity('').subscribe({

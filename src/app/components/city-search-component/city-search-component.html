@@ -4,6 +4,11 @@
     Rechercher un restaurant
   </div>
 
+  <!--
+  Formulaire Angular => (ngSubmit) sur <form> => + tient compte de return au clavier.
+    Bouton simple hors formulaire => (click) sur <button>
+  formControlName="city" => pour lier le champ du formulaire au champ déclaré comme contrôlé dans le .ts
+  -->
   <form
     class="flex gap-2 px-4 pb-4 pt-2"
     [formGroup]="citySearchForm"
@@ -17,12 +22,15 @@
       autofocus
     />
 
-    <!-- aria-label="Rechercher" ==> accessabilité : pour un lecteur d'écran, le bouton est annoncé comme "rechercher" -->
+     <!-- a
+     aria-label="Rechercher" ==> accessibilité : pour un lecteur d'écran, le bouton est annoncé comme "rechercher" 
+     test [disabled]="citySearchForm.invalid" permet de griser le bouton si le formulaire n'est pas valide => ici tant que le champ n'est pas saisi ou syntaxe ville incorrecte.
+     -->
      <button
       type="submit"
       class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-yellow-400 text-black shadow-sm transition hover:bg-yellow-500 active:bg-yellow-600 disabled:cursor-not-allowed disabled:opacity-40"
       aria-label="Rechercher"
-    >
+     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="h-5 w-5"
