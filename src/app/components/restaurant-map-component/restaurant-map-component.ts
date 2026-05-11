@@ -32,9 +32,10 @@ export class RestaurantMapComponent {
   public markers: Marker[] = [];
 
   /*
-  Création d'un marqueur à la position donnée + ajout une popup contenant un bouton permettant de choisir le point d'intérêt :
-    - marker([poi.lat, poi.lon]) => Création du marqueur Leaflet.
-    - popupContent => le contenu d'une popup Leaflet n'est pas vu comme Angular le voit => on ne peut pas faire : (click)="function()" => à construire avec createElement :
+  Création d'un marqueur à la position donnée + ajout une popup contenant un bouton permettant de choisir le point d'intérêt : marker([poi.lat, poi.lon]) 
+    => Création du marqueur Leaflet.
+  Le contenu d’une popup Leaflet n’est pas interprété comme un template Angular. Il n’est donc pas possible d’utiliser directement une liaison (click) dans le HTML de la popup.
+    - popupContent => le contenu d'une popup Leaflet à construire avec createElement :
       - une div qui est le conteneur de la popup.
       - un paragraphe pour afficher l’adresse du restaurant.
       - un bouton "choisir" pour sélectionner le restaurant => addEventListener pour permettre le click sur le bouton créer dynamiquement.

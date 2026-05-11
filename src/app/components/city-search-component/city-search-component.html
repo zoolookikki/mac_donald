@@ -21,31 +21,33 @@
       placeholder="Saisissez une ville"
       autofocus
     />
-
-     <!-- a
-     aria-label="Rechercher" ==> accessibilité : pour un lecteur d'écran, le bouton est annoncé comme "rechercher" 
-     test [disabled]="citySearchForm.invalid" permet de griser le bouton si le formulaire n'est pas valide => ici tant que le champ n'est pas saisi ou syntaxe ville incorrecte.
-     -->
-     <button
+ 
+    @if (!useOptimizedApiSearch) {
+      <!-- a
+      aria-label="Rechercher" ==> accessibilité : pour un lecteur d'écran, le bouton est annoncé comme "rechercher" 
+      test [disabled]="citySearchForm.invalid" permet de griser le bouton si le formulaire n'est pas valide => ici tant que le champ n'est pas saisi ou syntaxe ville incorrecte.
+      -->
+      <button
       type="submit"
       class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-yellow-400 text-black shadow-sm transition hover:bg-yellow-500 active:bg-yellow-600 disabled:cursor-not-allowed disabled:opacity-40"
       aria-label="Rechercher"
-     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
       >
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-    </button>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+      </button>
+    }
   </form>
 
   @if (suggestions().length > 0) {
