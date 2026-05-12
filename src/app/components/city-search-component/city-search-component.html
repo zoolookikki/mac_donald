@@ -22,7 +22,7 @@
       autofocus
     />
  
-    @if (!useOptimizedApiSearch) {
+    @if (!useOptimizedSearch) {
       <!-- a
       aria-label="Rechercher" ==> accessibilité : pour un lecteur d'écran, le bouton est annoncé comme "rechercher" 
       test [disabled]="citySearchForm.invalid" permet de griser le bouton si le formulaire n'est pas valide => ici tant que le champ n'est pas saisi ou syntaxe ville incorrecte.

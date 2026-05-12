@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RestaurantMapComponent } from "../../components/restaurant-map-component/restaurant-map-component";
 import { CitySearchComponent } from "../../components/city-search-component/city-search-component";
 import { City } from '../../models/city';
@@ -6,6 +6,7 @@ import { RestaurantOverlayComponent } from "../../components/restaurant-overlay-
 import { NearbyPoiService } from '../../services/nearby-poi-service';
 import { Poi } from '../../models/poi';
 import { HttpErrorResponse } from '@angular/common/http';
+import { StateService } from '../../services/state-service';
 
 @Component({
   selector: 'app-main-page-component',
@@ -14,29 +15,17 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrl: './main-page-component.css',
 })
 export class MainPageComponent {
-  public currentCity = signal<City | null>(null);
-  public errorMessage = signal<string>("");
-  public poiList = signal<Poi[]>([]);
-  public currentPOI = signal<Poi | null>(null);
 
-  constructor(private nearbyPoiService: NearbyPoiService) {}
+  constructor(
+    private nearbyPoiService: NearbyPoiService,
+    // public sinon le template ne peut pas y accéder.
+    public stateService: StateService
+  ) {}
 
   public handleSelectCity(city: City): void {
     console.log('ville reçue de city-search-component :', city);
 
-    // On efface toujours le restaurant sélectionné quand une ville est choisie.
-    this.currentPOI.set(null);
-    /*
-    On efface les POI uniquement si la ville change.
-    Le ?. => Si currentCity() n’est pas null, alors lis l'id sinon retourne undefined et donc !== event.id => reset.
-    */
-    if (this.currentCity()?.id !== city.id) {
-      this.poiList.set([]);
-    }
-    // on efface le message d'erreur.
-    this.errorMessage.set('');
-
-    this.currentCity.set(city);
+    this.stateService.setCurrentCity(city);
 
     // test city hs dans le service => erreur interne.
     /*
@@ -48,11 +37,11 @@ export class MainPageComponent {
       next: (pois: Poi[]) => {
         console.log(pois);
         if (pois.length === 0) {
-          this.errorMessage.set('Aucun Macdo trouvé.');
+          this.stateService.setErrorMessage('Aucun Macdo trouvé.');
           return;
         }
 
-        this.poiList.set(pois);
+        this.stateService.setPoiList(pois);
       },
       /*
       unknown mieux que any car l'erreur peut venir de plusieurs sources :
@@ -63,23 +52,23 @@ export class MainPageComponent {
       */
       error: (error: unknown) => {
         if (error instanceof HttpErrorResponse) {
-          this.errorMessage.set("Erreur HTTP : impossible de récupérer la liste des points d'intérêt.");
+          this.stateService.setErrorMessage("Erreur HTTP : impossible de récupérer la liste des points d'intérêt.");
           return;
         }
 
         if (error instanceof Error) {
-          this.errorMessage.set(error.message);
+          this.stateService.setErrorMessage(error.message);
           return;
         }
 
-        this.errorMessage.set("Erreur inconnue lors de la recherche des points d'intérêt.");
+        this.stateService.setErrorMessage("Erreur inconnue lors de la recherche des points d'intérêt.");
       },
     });
   }
 
   public handleSelectPOI(poi: Poi): void {
-    console.log('poi reçu de restaurant-mapcomponent :', poi);
-    this.currentPOI.set(poi);
+    console.log('poi reçu de restaurant-map-component :', poi);
+    this.stateService.setCurrentPOI(poi);
   }
 
   // on a cliqué sur "Continuer" dans l'overlay.
@@ -89,11 +78,11 @@ export class MainPageComponent {
       - Quand on doit lire plusieurs fois une valeur nullable
       - Pour que TypeScript soit ok avec la valeur null sinon erreur plus bas (this.currentPOI().name => l'objet a peut être la valeur null)
     */
-    const currentPOI: Poi | null = this.currentPOI();
+    const currentPOI: Poi | null = this.stateService.currentPOI();
 
     // cas normalement impossible (par protection)
     if (currentPOI === null) {
-      this.errorMessage.set('Choix non effectué.');
+      this.stateService.setErrorMessage('Choix non effectué.');
       return;
     }
     // simulation de la suite avec alert pour distinguer le cas.
