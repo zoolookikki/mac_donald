@@ -48,6 +48,13 @@ export class CitySearchService {
       });
     }
 
+    // TEST POC : permet de simuler une erreur HTTP/API
+    if (query === 'hs') {
+      return throwError(function () {
+        return new Error('Erreur simulée : recherche interrompue volontairement');
+      });
+    }    
+
     return this.http
       .get<NominatimSearchResult[]>(NOMINATIM_SEARCH_URL, {
         params: {

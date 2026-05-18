@@ -32,10 +32,10 @@ export class NearbyPoiService {
 
     // marge ajoutée pour avoir un rectangle de recherche plus large et retransformation en string pour Nominatim.
     return [
-      west - VIEWBOX_MARGIN, // diminution de la longitude pour agrandir vers la gauche.
-      north + VIEWBOX_MARGIN, // augmentation de la latitude pour agrandir vers le haut.
-      east + VIEWBOX_MARGIN, // augmentation de la latitude pour agrandire vers la droite.
-      south - VIEWBOX_MARGIN, //  diminution de la longitude pour agrandir vers le bas.
+      west - VIEWBOX_MARGIN, // longitude ouest : diminution pour agrandir vers la gauche.
+      north + VIEWBOX_MARGIN, // latitude nord : augmentation pour agrandir vers le haut.
+      east + VIEWBOX_MARGIN, // longitude est : augmentation pour agrandir vers la droite.
+      south - VIEWBOX_MARGIN, // latitude sud : diminution pour agrandir vers le bas.
     ].join(',');
   }
 

@@ -3,7 +3,7 @@ import { City } from '../../models/city';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CitySearchService } from '../../services/city-search-service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { debounceTime, filter, map, switchMap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, map, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type CitySearchForm = FormGroup<{
@@ -30,7 +30,7 @@ export class CitySearchComponent {
   //public suggestions: City[] = [];
   public suggestions = signal<City[]>([]);
 
-  public errorMessage = signal<string>("");
+  public searchErrorMessage = signal<string>("");
 
   // pas forcément utile dans notre projet (pour tester)
   private readonly cityRegex: RegExp = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/;
@@ -76,40 +76,80 @@ export class CitySearchComponent {
       L'observable valueChanges nous prévient à chaque fois que la valeur du champ change.
       */
       this.citySearchForm.controls.city.valueChanges.pipe(
+
         // on attend quelques millisecondes après la dernière frappe avant de continuer sinon on va appeler l' API Nominatim trop souvent (elle va s'arrêter de fonctionner).
         debounceTime(500),
+
         /*
         La saisie est tranformée dès le début du flux.
         Aurait pu être fait au moment du switchMap mais c'est mieux de le faire maintenant si la suite du flux en a besoin.
         */
         map((value: string) => this.normalizeCitySearch(value)),
+
+        /*
+        Après la normalisation du dessus, certaines saisies différentes peuvent produire la même valeur.
+        Exemple :
+          - "Paris"
+          - "paris"
+          - "Paris "
+        Elle deviennent toutes "paris" grâce à trim() et toLowerCase().
+        Cela permet d'éviter de relancer une requête vers Nominatim si la valeur normalisée est identique à la précédente.
+        */
+        distinctUntilChanged(),
+
         // on ne va pas plus loin si le champ n'a pas une saisie valide.
         filter((value: string) => {
           // suppression de la liste avant validation de la saisie sinon on ne voit pas clairement le message.
           this.suggestions.set([]);
           return this.validateSearch(value);
         }),
+
         /*
         Avec switchMap, si une nouvelle saisie arrive avant la réponse de l'API, l'ancienne recherche est ignorée au profit de la dernière.
         Sans switchMap, les réponses pourraient arriver dans le désordre et afficher des suggestions obsolètes.
         Donc mieux que de faire la recherche dans le subscribe ci-dessous.
+        +
+        Très important => finesse au niveau de la gestion d'erreur : https://www.intertech.com/angular-best-practice-rxjs-error-handling/
+        Dans un flux RxJS, une erreur non interceptée termine l'abonnement.
+        Si searchCity(city) renvoie une erreur HTTP/API directement dans le switchMap, et que cette erreur est seulement gérée dans le subscribe final, alors l'abonnement
+          à valueChanges peut être terminé. 
+        Résultat : après une erreur, l'utilisateur peut continuer à taper, mais aucune nouvelle recherche ne sera déclenchée.
+        Il faut donc gérer l'erreur dans le switchMap et non plus bas (code supprimé du coup).
+        Voir tag "RXJS ERROR"
         */
-        switchMap((city: string) => this.citySearchService.searchCity(city)),
+        // RXJS ERROR
+        // switchMap((city: string) => this.citySearchService.searchCity(city)),
+        switchMap((city: string) => {
+          return this.citySearchService.searchCity(city).pipe(
+            catchError((error: unknown) => {
+              this.suggestions.set([]);
+              this.handleCitySearchError(error);
+              /*
+              EMPTY arrête uniquement cette recherche en erreur sans émettre de résultat.
+              L'erreur ne remonte pas au subscribe final, donc le flux valueChanges reste actif.
+              */
+              return EMPTY;
+            })
+          );
+        }),
+
         // Un valueChanges reste actif tant que le composant existe. takeUntilDestroyed() évite de garder un abonnement inutile en mémoire si le composant disparaît.
         takeUntilDestroyed()
+
       ).subscribe({
         next: (cities: City[]) => {
           this.handleCitySearchSuccess(cities);
         },
-        error: (error: unknown) => {
-          this.handleCitySearchError(error);
-        },
+        // RXJS ERROR
+        //error: (error: unknown) => {
+        //  this.handleCitySearchError(error);
+        //},
       });
     }
   }
 
   private validateSearch(city: string): boolean {
-    this.errorMessage.set('');
+    this.searchErrorMessage.set('');
     /*
     par protection.
     test !city meilleur que this.citySearchForm.invalid avec Validators.required car ne voit pas la saisie de blancs.
@@ -117,14 +157,14 @@ export class CitySearchComponent {
 //    if (this.citySearchForm.invalid) {
     if (!city) {
       this.citySearchForm.markAllAsTouched();
-      this.errorMessage.set('La saisie de la ville est obligatoire.');
+      this.searchErrorMessage.set('La saisie de la ville est obligatoire.');
       return false;
     }
 
     // pas forcément utile dans notre projet (pour tester le regex)
     if (this.citySearchForm.controls.city.hasError('pattern')) {
       this.citySearchForm.markAllAsTouched();
-      this.errorMessage.set('La ville ne doit contenir que des lettres, espaces, tirets ou apostrophes.');
+      this.searchErrorMessage.set('La ville ne doit contenir que des lettres, espaces, tirets ou apostrophes.');
       return false;
     }
 
@@ -134,7 +174,7 @@ export class CitySearchComponent {
   private handleCitySearchSuccess(cities: City[]): void {
 
     if (cities.length === 0) {
-      this.errorMessage.set('Aucune correspondance trouvée pour cette recherche.');
+      this.searchErrorMessage.set('Aucune correspondance trouvée pour cette recherche.');
       return;
     }
 
@@ -153,16 +193,16 @@ export class CitySearchComponent {
   private handleCitySearchError(error: unknown): void {
 
     if (error instanceof HttpErrorResponse) {
-      this.errorMessage.set('Erreur HTTP : impossible de contacter le service de recherche.');
+      this.searchErrorMessage.set('Erreur HTTP : impossible de contacter le service de recherche.');
       return;
     }
 
     if (error instanceof Error) {
-      this.errorMessage.set(error.message);
+      this.searchErrorMessage.set(error.message);
       return;
     }
 
-    this.errorMessage.set('Erreur inconnue lors de la recherche de la ville.');
+    this.searchErrorMessage.set('Erreur inconnue lors de la recherche de la ville.');
   }
 
   /*
@@ -198,7 +238,7 @@ export class CitySearchComponent {
 
   public onClickSuggestion(suggestion: City): void {
     this.currentCity.emit(suggestion);
-    this.errorMessage.set('');
+    this.searchErrorMessage.set('');
     this.suggestions.set([]);
   }
 }
