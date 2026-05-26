@@ -16,17 +16,20 @@ export class StateService {
   public setCurrentCity(city: City): void {
     const previousCity: City | null = this.currentCity();
 
-    // On efface toujours le restaurant sélectionné quand une ville est choisie.
-    this.currentPOI.set(null);
+    this.errorMessage.set('');
+
     /*
-    On efface les POI uniquement si la ville change.
+    Si la ville sélectionnée est déjà la ville courante,
+    on ne réinitialise pas les données liées à la recherche.
     Le ?. => Si previousCity n’est pas null, alors lis l'id sinon retourne undefined et donc !== event.id => reset.
     */
-    if (previousCity?.id !== city.id) {
-      this.poiList.set([]);
+    if (previousCity?.id === city.id) {
+      return;
     }
-    // On efface le message d'erreur.
-    this.errorMessage.set('');
+
+    // Si la ville change, le restaurant sélectionné et la liste des restaurants ne correspondent plus au nouveau contexte.
+    this.currentPOI.set(null);
+    this.poiList.set([]);
 
     this.currentCity.set(city);
   }
