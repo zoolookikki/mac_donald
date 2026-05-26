@@ -6,17 +6,44 @@ import { Poi } from '../models/poi';
   providedIn: 'root',
 })
 export class StateService {
-  public currentCity = signal<City | null>(null);
-  public errorMessage = signal<string>("");
-  public poiList = signal<Poi[]>([]);
-  public currentPOI = signal<Poi | null>(null);
+
+  /*
+  Bonne pratique :
+  private readonly ...Signal accessible dans la classe uniquement => en plus avec readonly : la propriété currentCitySignal ne pourra pas être réassignée après son initialisation.
+    exemple interdit, refaire plus tard : this.currentCitySignal = signal<City | null>(null)
+    exemple autorisé dans le service : this.currentCitySignal.set(city)
+
+  public readonly ... asReadonly() accessible depuis l'extérieur par les composants mais :
+    readonly : la propriété ne peut pas être réassignée.
+    asReadonly() : les composants ne peuvent pas appeler .set() dessus.
+
+  Les composants peuvent lire : this.stateService.currentCity()
+  Mais ne peuvent pas faire : this.stateService.currentCity.set(city)
+  Obligé de passer par le setter : public setCurrentCity(city: City)
+  => application sûre de la logique métier.
+
+  Au lieu de :
+    public currentCity = signal<City | null>(null);
+    public errorMessage = signal<string>("");
+    public poiList = signal<Poi[]>([]);
+    public currentPOI = signal<Poi | null>(null);
+  */
+  private readonly currentCitySignal = signal<City | null>(null);
+  private readonly errorMessageSignal = signal<string>('');
+  private readonly poiListSignal = signal<Poi[]>([]);
+  private readonly currentPOISignal = signal<Poi | null>(null);
+
+  public readonly currentCity = this.currentCitySignal.asReadonly();
+  public readonly errorMessage = this.errorMessageSignal.asReadonly();
+  public readonly poiList = this.poiListSignal.asReadonly();
+  public readonly currentPOI = this.currentPOISignal.asReadonly();
 
   // Certains setters contiennent de la logique métier.
 
   public setCurrentCity(city: City): void {
     const previousCity: City | null = this.currentCity();
 
-    this.errorMessage.set('');
+    this.errorMessageSignal.set('');
 
     /*
     Si la ville sélectionnée est déjà la ville courante,
@@ -28,22 +55,22 @@ export class StateService {
     }
 
     // Si la ville change, le restaurant sélectionné et la liste des restaurants ne correspondent plus au nouveau contexte.
-    this.currentPOI.set(null);
-    this.poiList.set([]);
+    this.currentPOISignal.set(null);
+    this.poiListSignal.set([]);
 
-    this.currentCity.set(city);
+    this.currentCitySignal.set(city);
   }
 
  public setCurrentPOI(poi: Poi): void {
-    this.currentPOI.set(poi);
-    this.errorMessage.set('');
+    this.currentPOISignal.set(poi);
+    this.errorMessageSignal.set('');
   }
 
   public setPoiList(pois: Poi[]): void {
-    this.poiList.set(pois);
+    this.poiListSignal.set(pois);
   }
 
   public setErrorMessage(message: string): void {
-    this.errorMessage.set(message);
+    this.errorMessageSignal.set(message);
   }
 }
